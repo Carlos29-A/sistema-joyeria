@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         String   @default("vendedor")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Product {
+  id                   String   @id @default(uuid())
+  sku                  String   @unique
+  tipoJoya             String   @map("tipo_joya")
+  material             String
+  kilataje             String?
+  pesoGramos           Decimal  @map("peso_gramos")
+  costo                Decimal
+  precioVenta          Decimal  @map("precio_venta")
+  stock                Int      @default(0)
+  artesanal            Boolean  @default(false)
+  descripcionArtesanal String?  @map("descripcion_artesanal")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  images ProductImage[]
+
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  productId String   @map("product_id")
+  url       String
+  orden     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
