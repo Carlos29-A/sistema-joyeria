@@ -29,7 +29,7 @@ export default function LoginPage() {
       toast.error("Credenciales incorrectas");
     } else {
       toast.success("Bienvenido de vuelta");
-      router.push("/productos");
+      router.push("/admin");
       router.refresh();
     }
 
