@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
-import { Montserrat_Alternates } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import { Toaster } from "@/hooks/use-toast";
 import { NextAuthProvider } from "@/components/providers/auth-provider";
 import "@/app/globals.css";
 
-const montserratAlternates = Montserrat_Alternates({
+const montserrat = Montserrat({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-montserrat",
@@ -18,7 +18,7 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="es" className={montserratAlternates.variable}>
+    <html lang="es" className={montserrat.variable}>
       <body className="font-sans antialiased bg-stone-50 text-stone-900 min-h-screen">
         <NextAuthProvider>
           {children}
