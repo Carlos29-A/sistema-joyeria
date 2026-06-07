@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Montserrat_Alternates } from "next/font/google";
+import { AdminSidebar } from "@/components/features/admin-sidebar";
 import { Toaster } from "@/hooks/use-toast";
 import { NextAuthProvider } from "@/components/providers/auth-provider";
 import "@/app/globals.css";
@@ -12,16 +13,19 @@ const montserratAlternates = Montserrat_Alternates({
 });
 
 export const metadata = {
-  title: "Sistema de Joyería",
-  description: "Control exacto del catálogo de joyería",
+  title: "Panel Admin - Joyería",
+  description: "Panel de administración del catálogo de joyería",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es" className={montserratAlternates.variable}>
-      <body className="font-sans antialiased bg-stone-50 text-stone-900 min-h-screen">
+      <body className="font-sans antialiased bg-zinc-50 text-zinc-900">
         <NextAuthProvider>
-          {children}
+          <div className="flex min-h-screen">
+            <main className="flex-1 min-w-0">{children}</main>
+            <AdminSidebar />
+          </div>
           <Toaster
             position="top-right"
             richColors
