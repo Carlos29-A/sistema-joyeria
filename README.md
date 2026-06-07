@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sistema de Joyería
 
-## Getting Started
+Bienvenido al proyecto **Sistema de Joyería**, una aplicación moderna desarrollada con Next.js orientada a la gestión integral de un negocio joyero.
 
-First, run the development server:
+## Módulos del Sistema
 
+Este sistema se construirá paso a paso abarcando las siguientes áreas:
+
+1. **Inventario:** Control de piezas, peso, kilataje, tipo de piedras y alertas de stock bajo.
+2. **Punto de Venta (POS):** Carrito de compras, descuentos, múltiples métodos de pago y emisión de tickets.
+3. **Taller y Reparaciones:** Seguimiento de composturas, estados (recibido, en proceso, listo) y pedidos especiales.
+4. **CRM (Clientes):** Historial de compras, información de contacto y fechas importantes.
+5. **Dashboard y Reportes:** Visualización de ventas diarias/mensuales y productos más vendidos.
+6. **Seguridad:** Gestión de accesos por roles (Administrador, Vendedor, Joyero).
+
+## Paso a Paso (Cómo iniciar el proyecto)
+
+Sigue estos pasos para arrancar el entorno de desarrollo en tu máquina local:
+
+### 1. Instalar Dependencias
+Asegúrate de tener Node.js instalado. Abre tu terminal en la raíz del proyecto y ejecuta:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Levantar el Servidor de Desarrollo
+Una vez instaladas las dependencias, inicia el servidor con:
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Visualizar la Aplicación
+Abre tu navegador y dirígete a:
+[http://localhost:3000](http://localhost:3000)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+> **Nota:** Puedes consultar el archivo `implementation_plan.md` (si está disponible en el entorno) para ver el detalle técnico de las Historias de Usuario aprobadas para el desarrollo.
