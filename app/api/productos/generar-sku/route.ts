@@ -2,8 +2,19 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateSkuSchema } from "@/lib/validations/product";
 import { generateNextSku } from "@/lib/sku-generator";
+import { auth } from "@/lib/auth";
+
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+  const role = (session.user as { role?: string }).role;
+  if (role !== "administrador") {
+    return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
+  }
   try {
     const body = await req.json();
     const parsed = generateSkuSchema.safeParse(body);

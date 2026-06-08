@@ -19,6 +19,28 @@ model User {
   @@map("users")
 }
 
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Brand {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  products Product[]
+
+  @@map("brands")
+}
+
 model Product {
   id                   String   @id @default(uuid())
   sku                  String   @unique
@@ -31,10 +53,14 @@ model Product {
   stock                Int      @default(0)
   artesanal            Boolean  @default(false)
   descripcionArtesanal String?  @map("descripcion_artesanal")
+  categoryId           String   @map("category_id")
+  brandId              String?  @map("brand_id")
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @updatedAt @map("updated_at")
 
-  images ProductImage[]
+  category Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  brand    Brand?         @relation(fields: [brandId], references: [id], onDelete: Restrict)
+  images   ProductImage[]
 
   @@map("products")
 }

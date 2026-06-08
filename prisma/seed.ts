@@ -24,6 +24,23 @@ async function main() {
   } else {
     console.log("ℹ️  Ya existe un administrador.");
   }
+
+  const defaultCategories = ["Anillos", "Collares", "Pulseras", "Relojes"];
+
+  for (const categoryName of defaultCategories) {
+    const existing = await prisma.category.findUnique({
+      where: { name: categoryName },
+    });
+
+    if (!existing) {
+      await prisma.category.create({
+        data: { name: categoryName },
+      });
+      console.log(`✅ Categoría creada: ${categoryName}`);
+    } else {
+      console.log(`ℹ️  Ya existe la categoría: ${categoryName}`);
+    }
+  }
 }
 
 main()

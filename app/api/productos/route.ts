@@ -2,18 +2,30 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createProductSchema } from "@/lib/validations/product";
 import { generateNextSku } from "@/lib/sku-generator";
+import { auth } from "@/lib/auth";
+import { z } from "zod";
+
+export const runtime = "nodejs";
 
 export async function GET(req: Request) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
   try {
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, Number(searchParams.get("page")) || 1);
     const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit")) || 20));
     const tipoJoya = searchParams.get("tipoJoya");
     const material = searchParams.get("material");
+    const categoryId = searchParams.get("categoryId");
+    const brandId = searchParams.get("brandId");
 
     const where: Record<string, unknown> = {};
     if (tipoJoya) where.tipoJoya = tipoJoya;
     if (material) where.material = material;
+    if (categoryId) where.categoryId = categoryId;
+    if (brandId) where.brandId = brandId;
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({
@@ -23,6 +35,8 @@ export async function GET(req: Request) {
             orderBy: { orden: "asc" },
             take: 1,
           },
+          category: true,
+          brand: true,
         },
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
@@ -54,42 +68,23 @@ export async function GET(req: Request) {
   }
 }
 
+const createProductWithImagesSchema = createProductSchema.extend({
+  imagenes: z.array(z.string().url()).min(1, "Debe subir al menos una imagen del producto"),
+});
+
 export async function POST(req: Request) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+  const role = (session.user as { role?: string }).role;
+  if (role !== "administrador") {
+    return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
+  }
+
   try {
-    const contentType = req.headers.get("content-type") || "";
-
-    if (!contentType.includes("multipart/form-data")) {
-      return NextResponse.json(
-        { error: "El contenido debe ser multipart/form-data" },
-        { status: 400 }
-      );
-    }
-
-    const formData = await req.formData();
-
-    const tipoJoya = formData.get("tipoJoya") as string;
-    const material = formData.get("material") as string;
-    const kilatajeRaw = formData.get("kilataje");
-    const pesoGramosRaw = formData.get("pesoGramos");
-    const costoRaw = formData.get("costo");
-    const precioVentaRaw = formData.get("precioVenta");
-    const stockRaw = formData.get("stock");
-    const artesanalRaw = formData.get("artesanal");
-    const descripcionArtesanal = formData.get("descripcionArtesanal") as string | null;
-
-    const payload = {
-      tipoJoya,
-      material,
-      kilataje: kilatajeRaw && kilatajeRaw !== "null" && kilatajeRaw !== "" ? kilatajeRaw : null,
-      pesoGramos: pesoGramosRaw ? Number(pesoGramosRaw) : undefined,
-      costo: costoRaw ? Number(costoRaw) : undefined,
-      precioVenta: precioVentaRaw ? Number(precioVentaRaw) : undefined,
-      stock: stockRaw ? Number(stockRaw) : undefined,
-      artesanal: artesanalRaw === "true" || artesanalRaw === "on",
-      descripcionArtesanal: descripcionArtesanal || undefined,
-    };
-
-    const parsed = createProductSchema.safeParse(payload);
+    const body = await req.json();
+    const parsed = createProductWithImagesSchema.safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -98,58 +93,37 @@ export async function POST(req: Request) {
       );
     }
 
-    const imageFiles = formData.getAll("imagenes") as File[];
-    if (imageFiles.length === 0) {
-      return NextResponse.json(
-        { error: "Debe subir al menos una imagen del producto" },
-        { status: 400 }
-      );
-    }
-
-    const sku = await generateNextSku(prisma, parsed.data.tipoJoya, parsed.data.material);
+    const { imagenes, ...productData } = parsed.data;
+    const sku = await generateNextSku(prisma, productData.tipoJoya, productData.material);
 
     const producto = await prisma.product.create({
       data: {
         sku,
-        tipoJoya: parsed.data.tipoJoya,
-        material: parsed.data.material,
-        kilataje: parsed.data.kilataje ?? null,
-        pesoGramos: parsed.data.pesoGramos,
-        costo: parsed.data.costo,
-        precioVenta: parsed.data.precioVenta,
-        stock: parsed.data.stock,
-        artesanal: parsed.data.artesanal,
-        descripcionArtesanal: parsed.data.descripcionArtesanal ?? null,
+        tipoJoya: productData.tipoJoya,
+        material: productData.material,
+        kilataje: productData.kilataje ?? null,
+        pesoGramos: productData.pesoGramos,
+        costo: productData.costo,
+        precioVenta: productData.precioVenta,
+        stock: productData.stock,
+        artesanal: productData.artesanal,
+        descripcionArtesanal: productData.descripcionArtesanal ?? null,
+        categoryId: productData.categoryId,
+        brandId: productData.brandId ?? null,
       },
     });
 
-    const imageRecords = [];
-    const uploadDir = process.env.UPLOAD_DIR || "./public/uploads";
-    const fs = await import("fs/promises");
-    const path = await import("path");
-
-    await fs.mkdir(path.join(process.cwd(), uploadDir, producto.id), { recursive: true });
-
-    for (let i = 0; i < imageFiles.length; i++) {
-      const file = imageFiles[i];
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const extension = file.name.split(".").pop() || "jpg";
-      const filename = `${Date.now()}-${i}.${extension}`;
-      const relativePath = `/uploads/${producto.id}/${filename}`;
-      const absolutePath = path.join(process.cwd(), "public", relativePath);
-
-      await fs.writeFile(absolutePath, buffer);
-
-      const image = await prisma.productImage.create({
-        data: {
-          productId: producto.id,
-          url: relativePath,
-          orden: i,
-        },
-      });
-
-      imageRecords.push(image);
-    }
+    const imageRecords = await Promise.all(
+      imagenes.map((url, i) =>
+        prisma.productImage.create({
+          data: {
+            productId: producto.id,
+            url,
+            orden: i,
+          },
+        })
+      )
+    );
 
     return NextResponse.json(
       {

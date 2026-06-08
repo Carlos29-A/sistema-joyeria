@@ -29,6 +29,8 @@ export const createProductSchema = z
       .nonnegative("El stock no puede ser negativo"),
     artesanal: z.boolean().default(false),
     descripcionArtesanal: z.string().optional(),
+    categoryId: z.string({ message: "La categoría es obligatoria" }).min(1, "La categoría es obligatoria"),
+    brandId: z.string().nullable().optional(),
   })
   .refine(
     (data) => {
@@ -68,6 +70,8 @@ export const updateProductSchema = z
     stock: z.number().int("El stock debe ser un número entero").nonnegative("El stock no puede ser negativo").optional(),
     artesanal: z.boolean().optional(),
     descripcionArtesanal: z.string().optional(),
+    categoryId: z.string().min(1, "La categoría es obligatoria").optional(),
+    brandId: z.string().nullable().optional(),
   });
 
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
